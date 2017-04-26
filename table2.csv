@@ -1,0 +1,57 @@
+Description,Significance Rating (SR),Precast Concrete,Insitu Concrete,Steel,Timber,Other
+Wearing Surface,2.00,,4,,,3
+Fill,2.00,,4,,,3
+Bridge Barriers,1.00,1,2,3,4,1.5
+Kerb,1.00,1,2,3,4,
+Footway,1.00,1,2,3,4,1.5
+Pourable Joint Seal,2.00,,,,,3
+Compression Joint Seal,2.00,,,,,3
+Assembly Joint Seal,2.00,,,,,3
+Open Expansion Joint,2.00,,,6,,3
+Sliding Joint,2.00,,,6,,
+Joint,2.00,,,,,3
+Deck,3.00,3,6,,12,
+Culvert Base Slab,3.00,3,6,,12,
+Closed Web/ Box Girders,4.00,4,8,12,,
+Girder,4.00,4,8,12,16,
+Through Truss,4.00,,,12,,
+Deck Truss,4.00,,,12,,
+Arches,4.00,4,8,12,,6
+Cables/Hanger,4.00,,,12,,
+Corbels,3.00,,6,,12,
+Cross Beams/Floor Beams,3.00,,,9,12,
+Deck Planks,3.00,3,,,12,
+Steel Decking,3.00,,,9,,
+Diaphragms/Bracing (Cross Girders),3.00,,6,9,,
+Cross Girder,3.00,,6,9,,
+Load Bearing Diaphragms,4.00,,8,,,
+Spiking Plank,1.00,,,,4,
+Fixed Bearings,2.00,,,,,3
+Sliding Bearings,2.00,,,,,3
+Bearings,2.00,,,,,3
+Rockers/Rollers,2.00,,,6,,
+Mortar Pad,1.00,,,,,1.5
+Bearing Pedestals,1.00,,,,,1.5
+Restraint Angle,2.00,,,6,,3
+Abutment,3.00,,6,,,4.5
+Wingwalls,3.00,,6,,,4.5
+Sill Log,3.00,,,,12,
+Bracing Wale,3.00,,,,12,
+Retaining Wall,3.00,,6,,,4.5
+Abutment Sheeting,2.00,2,4,6,8,3
+Infill Panels,2.00,2,4,6,8,3
+Batter Protection,1.00,1,2,,,1.5
+Headstock,4.00,4,8,12,16,
+Columns,4.00,4,8,12,16,
+Piles & Encasements,3.00,,6,9,12,
+Pilecap,3.00,,6,,,4.5
+Pier Wall,3.00,,6,,,4.5
+Footing,3.00,,6,,12,
+Approach,2.00,,,,,3
+Waterway,2.00,,4,,,3
+Guardrail,1.00,1,2,3,4,1.5
+Pipe Culvert,2.00,2,,6,,3
+Box Culvert,2.00,2,4,,,
+Modular Culvert,2.00,2,,,,
+Arch Culvert,2.00,2,4,6,,3
+Headwall,1.00,1,2,,,1.5

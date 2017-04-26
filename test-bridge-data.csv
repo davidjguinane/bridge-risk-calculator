@@ -1,0 +1,10 @@
+parentAssetId,street,bridgeName,owner,latitude,longitude,constructionYear,parentAssetGroup,designClass,structureType,details,length,width,area,status,roadHierarchy,constructionMaterial,inspectionDate,inspectionRating,nextInspection,aadt,cvpd
+157964,Bill Street,Bill Street Bridge,Roads,28.9601,153.3425,1975,,H20S16,,,20,5,100,Open To Traffic,,Precast Concrete,20/04/2011,3,,200,200
+158543,Bob Street,Bob Street Bridge,Roads,29.9601,154.3425,1980,,SM1600,,,22,7,154,Open To Traffic,,Timber,6/11/2011,2,,450,450
+159122,Ben Street,Ben Street Bridge,Roads,30.9601,155.3425,1985,,T44 + HLP,,,24,9,216,Open To Traffic,,Insitu Concrete,24/05/2012,4,,700,700
+159701,Bert Street,Bert Street Bridge,Roads,31.9601,156.3425,1990,,T44,,,26,11,286,Open To Traffic,,Precast Concrete,10/12/2012,3,,950,950
+160280,Brendan Street,Brendan Street Bridge,Roads,32.9601,157.3425,1995,,SM1600,,,28,11,308,Open To Traffic,,Timber,28/06/2013,2,,1200,1200
+160859,Bonnie Street,Bonnie Street Bridge,Roads,33.9601,158.3425,2000,,T44 + HLP,,,30,11,330,Open To Traffic,,Insitu Concrete,14/01/2014,4,,1450,1450
+161438,Beth Street,Beth Street Bridge,Roads,34.9601,159.3425,2005,,T44,,,32,11,352,Open To Traffic,,Precast Concrete,2/08/2014,3,,1700,1700
+162017,Brodie Street,Brodie Street Bridge,Roads,35.9601,160.3425,2010,,SM1600,,,34,11,374,Open To Traffic,,Timber,18/02/2015,2,,1950,1950
+162596,Bailey Street,Bailey Street Bridge,Roads,36.9601,161.3425,2015,,T44 + HLP,,,36,11,396,Open To Traffic,,Insitu Concrete,6/09/2015,4,,2200,2200
