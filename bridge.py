@@ -5,8 +5,14 @@ import datetime as dt
 import time
 from datetime import date
 from sys import argv
+from consequence import *
 
 start = time.time()
+
+def get_timestamp():
+	t = dt.datetime.now()
+	timestamp = t.strftime('%Y%m%d%I%M%p')
+	return timestamp
 
 def add_years(d, years):
     """Return a date that's `years` years after the date (or datetime)
@@ -19,9 +25,13 @@ def add_years(d, years):
     except ValueError:
         return d + (date(d.year + years, 1, 1) - date(d.year, 1, 1))
 
-path = 'C:\\Users\\DJG\\Desktop\\scripts'
+path = os.path.dirname(os.path.abspath(__file__))
 
-# set argv to the list of arguments passed to the script
+'''
+Set argv to the list of command line arguments passed when running the script
+bridge_data is the bridge level dataset
+component_data is the component level dataset
+'''
 script, bridge_data, component_data = argv
 
 def on_script_run():
@@ -35,7 +45,7 @@ def on_script_run():
 on_script_run()	
 	
 ''' 
-***DECLARE SCRIPT CONSTANTS / TABLES***
+Declare global variables used throughout the script
 '''
 
 Fs = 10 # Seperation Factor
@@ -62,29 +72,31 @@ of the next inspection date of the bridge structure.
 """
 def next_inspection_date(row, if_table):
 	current_date = dt.datetime.today()
-	try:
-		row['inspectionRating'] = row['inspectionRating'].fillna(3.0, inplace=True)
-		condition = row['inspectionRating']
-	except (AttributeError, TypeError, ValueError):
+	row['inspectionRating'] = row['inspectionRating']
+	if row['inspectionRating'] == "":
 		condition = 3
-	#print(condition)
-	try:
-		row['constructionMaterial'] = row['constructionMaterial'].fillna("unknown", inplace=True)
-		material = row['constructionMaterial']
-	except (AttributeError, TypeError, ValueError):
+	else:
+		condition = row['inspectionRating']
+	row['constructionMaterial'] = row['constructionMaterial']
+	if row['constructionMaterial'] == "":
 		material = "Material unknown"
-	try:
-		row['inspectionDate'] = row['inspectionDate'].fillna("uninspected", inplace=True)
+	else:
+		material = row['constructionMaterial']
+	row['inspectionDate'] = row['inspectionDate']
+	if row['inspectionDate'] == "":
+		inspectionDate = "uninspected"
+	elif row['inspectionDate'] == "uninspected":
+		inspectionDate = "uninspected"
+	else:
 		date = row['inspectionDate']
-	except (AttributeError, TypeError, ValueError):
-		date = "uninspected"
+		inspectionDate = dt.datetime.strptime(date, '%d/%m/%Y')	
 	if material == "Timber":
 		ift = if_table[if_table['Overall condition state of structure'] == condition]
 		inspection_interval = ift.ix['Timber', 'Inspection frequency (years)']
 	else:
 		ift = if_table[if_table['Overall condition state of structure'] == int(condition)]
 		inspection_interval = ift.ix['Bridges and Culverts', 'Inspection frequency (years)']
-	if date ==  "uninspected":	
+	if inspectionDate ==  "uninspected":	
 		nextInspectionDate = current_date
 	elif add_years(inspectionDate, inspection_interval) < current_date:
 		nextInspectionDate = current_date
@@ -137,29 +149,6 @@ def create_exposure_table():
 	
 xf = create_exposure_table()
 
-"""Creates Resistance Factor Parameter table from the TMR Prioritisation User Guide
-as a dataframe 
-"""
-'''
-def create_resistance_table():		
-	componentNo = [1,2,3,4,10,11,12,13,14,15,20,21,22,23,24,25,26,27,28,29,30,31,32,33,40,41,42,43,44,45,50,51,52,53,54,55,56,57,58,59,70,71,72,80,81,82,83,84]
-	precast=[2,3,4,20,21,22,25,29,52,53,54,56,72,80,81,82,83,84]
-	concrete=[1,2,3,4,20,21,22,25,27,31,32,50,51,52,53,54,55,56,57,58,59,71,72,81,83,84]
-	steel = [2,3,4,13,14,21,22,23,24,25,26,28,30,31,43,45,52,54,56,57,72,80,83]
-	timber = [2,3,4,20,22,27,28,29,32,52,54,56,5,59,72]
-	other = [1,2,4,10,11,12,13,15,25,40,41,42,44,45,50,51,52,53,58,70,71,72,80,83,84]
-	resistance_factors = {'Description' : pd.Series(['Wearing surface','Bridge Barriers', 'Bridge Kerbs', 'Footways', 'Pourable Joint Seal', 'Compression Joint Seal', 'Assembly Joint Seal', 'Open Expansion Joint', 'Sliding Joint', 'Fixed/Small Movement Joint', 'Deck Slab/ Culvert Base Slab Joints', 'Closed Web/Box Girders', 'Open Girders', 'Through Truss', 'Deck Truss', 'Arches', 'Cables/Hanger', 'Corbels', 'Cross Beams/Floor Beams', 'Deck Planks', 'Steel Decking', 'Diaphragms/Bracing (Cross Girders)', 'Load Bearing Diaphragm', 'Spiking Plank', 'Fixed Bearings', 'Sliding Bearings', 'Elastomeric/Pot Bearings', 'Rockers/Rollers', 'Mortar Pads/Bearing Pedestals', 'Restraint Angles/Blocks', 'Abutment', 'Wingwall/Retaining Wall', 'Abutment Sheeting/Infill Panels', 'Batter Protection', 'Headstocks', 'Pier Headstocks (Integral)', 'Columns of Piles', 'Piles Bracing/Walls', 'Pier Walls', 'Footing/Pile Cap/Sill Log', 'Bridge Approaches', 'Waterway', 'Approach Guardrail', 'Pipe Culverts', 'Box Culverts', 'Modular Culverts', 'Arch Culverts', 'Headwalls/Wingwalls'], index=componentNo),
-	'Significance Rating (SR)' : pd.Series([2,1,1,1,2,2,2,2,2,2,3,4,4,4,4,4,4,3,3,3,3,3,4,1,2,2,2,2,1,2,3,3,2,1,4,4,4,3,3,3,2,2,1,2,2,2,2,1], index=componentNo), 
-	'Precast Concrete' : pd.Series([1,1,1,3,4,4,4,3,2,1,4,4,1,2,2,2,2,1], index=precast),
-	'Concrete' : pd.Series([4,2,2,2,6,8,8,8,6,6,8,6,6,4,2,8,8,8,6,6,6,4,2,4,4,2], index=concrete),
-	'Steel' : pd.Series([3,3,3,6,6,12,12,12,12,12,12,9,9,9,6,6,6,12,12,9,3,6,6], index=steel),
-	'Timber' : pd.Series([4,4,4,12,16,12,12,12,4,8,16,16,12,12,4], index=timber),
-	'Other' : pd.Series([3,1.5,1.5,3,3,3,3,3,6,3,3,3,1.5,3,4.5,4.5,3,1.5,4.5,3,3,1.5,3,3,1.5], index=other)}
-	table2 = pd.DataFrame(resistance_factors)
-	return table2
-
-table2 = create_resistance_table()	
-'''	
 """Opens Resistance Factor Parameter table a CSV file
 """
 def read_table_2(data):
@@ -183,10 +172,6 @@ def create_inspection_frequency_table():
 
 inspection_frequency = create_inspection_frequency_table()
 	
-'''
-*** READ THE DATA ***
-'''
-
 # Read the Bridge Level Data CSV file to a Pandas Dataframe 
 def read_bridge_data():
 	# Read the bridge CSV
@@ -208,7 +193,6 @@ bridge_index = df1.index.tolist()
 '''
 *** CHECK DATA TYPES ***
 '''
-
 def check_data_types():
 	print("\n")
 	print("... Your bridge data is in the following format:")
@@ -219,7 +203,6 @@ def check_data_types():
 	print("\n")
 
 #check_data_types()
-	
 def get_design_class(dataframe):
 	design_class = dataframe['designClass']
 	return design_class
@@ -232,7 +215,6 @@ def get_cvpd(dataframe):
 '''
 *** LOADING FACTOR ***
 '''
-	
 def loading_factor(dataframe, table1a):
 	# iterate through dataframe
 	results = []
@@ -248,7 +230,6 @@ LF = loading_factor(df2, table1A)
 '''
 *** RESISTANCE FACTOR ***
 '''
-
 # Calculate the Resistance Factor in accordance with TMR Manual Section 5.2
 def resistance_factors(dataframe1, dataframe2): #dataframe1 is component data, dataframe2 is table2
 	results = []
@@ -278,7 +259,6 @@ SF = resistance_factors(df2, table2)
 '''
 *** CONDITION FACTOR ***
 '''
-
 def condition_fator(dataframe):
 	results = []
 	# Get the asset ID from the line in dataframe - component data
@@ -304,7 +284,6 @@ CF = condition_fator(df2)
 '''
 *** INSPECTION FACTOR ***
 '''
-
 def check_inspection_interval_exceeded(dataframe, inspection_frequency_table):
 	
 	current_date = dt.datetime.today()
@@ -323,12 +302,10 @@ def check_inspection_interval_exceeded(dataframe, inspection_frequency_table):
 		inspectionRating = row['inspectionRating']
 		constructionMaterial = row['constructionMaterial']
 		inspectionDate = row['inspectionDate']
-		#print(inspectionDate)
 		if inspectionDate == "uninspected":
 			pass
 		else:
 			inspectionDate = dt.datetime.strptime(inspectionDate, '%d/%m/%Y')
-		#print(inspectionDate)
 		if constructionMaterial == "Timber":
 			ift = inspection_frequency_table[inspection_frequency_table['Overall condition state of structure'] == inspectionRating]
 			inspection_interval = ift.ix['Timber', 'Inspection frequency (years)']
@@ -348,8 +325,6 @@ def check_inspection_interval_exceeded(dataframe, inspection_frequency_table):
 		else:
 			result = assetId
 			pass
-	#print(dueForInspectionList)
-	#print(len(dueForInspectionList))
 	return dueForInspectionList, detailedDueForInspectionList
 	
 dueForInspectionList, detailedDueForInspectionList = check_inspection_interval_exceeded(df1, inspection_frequency)
@@ -382,11 +357,8 @@ IF = inspection_factor(df2, df1, inspection_frequency)
 '''
 *** EXPOSURE FACTOR ***
 '''
-
 def exposure_factor(dataframe, exposure_table): #dataframe is component data
-	
 	results = []
-
 	for index, row in dataframe.iterrows():
 		exposure_classification = row['exposureClass']
 		df = exposure_table.set_index('Classification')
@@ -396,6 +368,25 @@ def exposure_factor(dataframe, exposure_table): #dataframe is component data
 		
 XF = 	exposure_factor(df2, xf)
 
+HC = hcon(df1)
+TC = tcon(df1)
+EC = econ(df1)
+RS = rsig(df1)
+AC = icon(df1)
+
+def consequence_score(HC, TC, EC, RS, AC):
+	results = []
+	for a, b, c, d, e in zip(HC, TC, EC, RS, AC):
+		try:
+			result = a*b*c*d*e
+			results.append(result)
+		except (TypeError, ValueError):
+			result = "Data missing"
+			results.append(result)
+	return results
+
+CS = consequence_score(HC, TC, EC, RS, AC)
+	
 def probability_component_failure(LF, SF, CF, IF, XF):
 	results = []
 	for a, b, c, d, e in zip(LF, SF, CF, IF, XF):
@@ -409,132 +400,149 @@ def probability_component_failure(LF, SF, CF, IF, XF):
 	
 PCF = probability_component_failure(LF, SF, CF, IF, XF)
 
-def group_mdf(condition_data, dataframe):
-	#print(condition_data)
-	filter_by_sr = condition_data.loc[condition_data['weighting'].isin([3,4])]
-	#print(filter_by_sr)
-	groups = filter_by_sr.groupby(['componentType', 'componentGroup']).groups
-	#print(groups)
-	mdf = []
-	group_mdf = []
-	for key, values in groups.items():
-		#print(key)
-		#print(values)
-		y_sum = 0
-		x_sum = 0
-		_3sum = 0
-		_4sum = 0
-		for i in values:
-			#print(i)
-			df_row = dataframe.iloc[i]
-			#print(df_row)
-			i_weighting = df_row['weighting']
-			#print("working")
-			#print('The weighting of the component is ' + i_weighting)
-			i_measure = df_row.loc[i,'measure']
-			#print('The measure of the component is ' + i_measure)
-			i_no_cs4 = df_row.loc[i,'conditionStateFour']
-			#print('The measure of the component that is in CS4 is ' + i_no_cs4)
-			if i_weighting == float(3):
-				y = i_no_cs4/i_measure
-				y_sum += y
-				_3sum += 1
-				#print(y)
-			elif i_weighting == float(4):
-				x =  i_no_cs4/i_measure
-				x_sum += x
-				_4sum += 1
-				#print(x)
-			#print('The sum of x is ' + x_sum)
-			#print('The sum of y is ' + y_sum)
-			#print('The sum of xt is ' + _3sum)
-			#print('The sum of yt is ' + _4sum)
-		mdfp = ((x_sum**m + 0.5*y_sum**m)/(_3sum + _4sum))*Fs
-		mdf.append(mdfp)
-		group_mdf.append(mdfp)
-	result = 0
-	for i in mdf:
-		result += i
-	return result, group_mdf
-		
-def bridge_mdf(dataframe1, dataframe2): #dataframe1 is bridge data
-	results = []
-	group_mdf_results = []
-	for index, row in dataframe1.iterrows():
-		bridgeAssetId = row['parentAssetId']
-		try:
-			conditionAssetId = dataframe2[dataframe2['parentAssetId'] == bridgeAssetId]
-			result, group_mdf = group_mdf(conditionAssetId, dataframe2)
-			results.append(result)
-			group_mdf_results.append(group_mdf)
-		except:
-			result = 1
-			results.append(result)
-	return results
-
-MDF = bridge_mdf(df1, df2)
-
-'''
-*** DEFECTIVE STRUCTURE RATING ***
-'''
-
-def group_dsr():
-	pass
-	
-def dsrating():
-	pass
-
-'''
-*** PROBABILITY OF GROUP FAILURE ***
-'''
-'''
-def output_group_calculations(*args):
-	dataframe = {}
-	group_index = ()
+def mdfactor(dataframe1, dataframe2, *args): #dataframe1 is bridge data, dataframe2 is the condition data, dataframe3 is the updated condition data
+	# Pass all calculation results into a list so a new column can be added to the dataframe with the existing index
+	mdfresults = []
+	dsrresults = []
+	pgfresults = []
+	bridgelist = []
+	psfresults = []
 	count = 0
-	for arg in args:
-		#print(arg)
-		dataframe[count] = pd.Series(arg, index=index)
-		count += 1
-	df = pd.DataFrame(dataframe)
-	output = df.to_csv(filename)
-	return output
-'''
-	
-def prob_group_failure(mdfp):
-	pass
-	
-#PGF = prob_group_failure
+	for index, row in dataframe1.iterrows():
+		# Selects parentassetId from each row in the bridge data file
+		bridgeAssetId = row['parentAssetId']
+		# Selects all the rows in condition data where the parent asset id is equal to the bridgeAssetId variable
+		conditionAssetId = dataframe2[dataframe2['parentAssetId'] == bridgeAssetId]
+		# If no condition data exists for the parent asset id
+		if conditionAssetId.empty:
+			MDF = 1
+			DSR = 1
+			PSF = 1
+			mdfresults.append(MDF)
+			dsrresults.append(DSR)
+			pgfresults.append('No data')
+			bridgelist.append(bridgeAssetId)
+			psfresults.append(PSF)
+		# If condition data does exist, perform the MDF calculations
+		else:
+			# Pass the filtered dataframe to the group_mdf function
+			filter_by_sr = conditionAssetId.loc[conditionAssetId['weighting'].isin([3,4])]
+			groups = filter_by_sr.groupby('componentType').groups
+			partial_mdf = []
+			partial_dsr = []
+			partial_pgf = []
+			r = 0
+			for key, values in groups.items():
+				r += 1
+				f_sum = 0
+				pcf_sum = 0
+				y_sum = 0
+				x_sum = 0
+				_3sum = 0
+				_4sum = 0
+				q = 0
+				# Loops through all the components in a group, i.e will loop through S1 headstock, piles, etc
+				for i in values:
+					q += 1
+					i_SF = SF[i]
+					i_CF = CF[i]
+					i_IF = IF[i]
+					i_XF = XF[i]
+					i_LF = LF[i]
+					factor = (i_SF*i_CF*i_IF*i_XF)
+					partial_pcf = i_SF*i_CF*i_IF*i_XF*i_LF
+					pcf_sum += partial_pcf
+					f_sum += factor
+					# Error in here somewhere
+					# Gets the index row from dataframe2
+					df_row = dataframe2.iloc[i]
+					# Gets the weighting of the component, can be 3 or 4
+					i_weighting = df_row['weighting']
+					# Get the measure of the component
+					if pd.isnull(df_row['measure']):
+						i_measure = 1
+					else:
+						i_measure = df_row['measure']
+					# Get the amount of measure in CS4
+					if pd.isnull(df_row['conditionStateFour']):
+						i_no_cs4 = i_measure
+					else:
+						i_no_cs4 = df_row['conditionStateFour']
+					# If the weighting was SR3
+					if i_weighting == float(3):
+						y = i_no_cs4/i_measure
+						y_sum += y
+						_3sum += 1
+					# If the weighting was SR4
+					elif i_weighting == float(4):
+						x =  i_no_cs4/i_measure
+						x_sum += x
+						_4sum += 1
+				#print('Factor sum is {0}'.format(f_sum))
+				# Once loop is complete, will calculate the Partial Group Deficiency Factor
+				mdfp = ((x_sum**m + 0.5*y_sum**m)/(_3sum + _4sum))*Fs
+				# Calcualte the Probability of Group Failure
+				PGF = (1+mdfp)*(pcf_sum/q)
+				pgfresults.append(PGF)
+				partial_pgf.append(PGF)
+				bridgelist.append(bridgeAssetId)
+				# Once loop is complete, will calculate the Partial Group Defective Structure Rating
+				dsrg = ((1+mdfp)*(f_sum))/(q)
+				# Adds the partial group MDF to a list, so for each structure the sum of groups can be obtained
+				partial_mdf.append(mdfp)
+				# Adds the partial group DSR to a list, so for each structure the sum of groups can be obtained
+				partial_dsr.append(dsrg)
+			# Calculates the total structure MDF by summing the partial groups
+			MDF = 1 + sum(partial_mdf)
+			# Calculates the total structure DSR by summing the partial groups
+			DSR = ((sum(partial_dsr))/r)*(MDF/Fc)
+			# Calcualtes the probability of structure failure
+			PSF = (((sum(partial_pgf))/(1+sum(partial_mdf)))/(len(pgfresults)))*((MDF)/(Fc))
+			# Adds the MDF for the structure to a list
+			mdfresults.append(MDF)
+			#print('Structure MDF is {0}'.format(MDF))
+			dsrresults.append(DSR)
+			# Adds the PSF for the structure to a list
+			psfresults.append(PSF)
+		#except:
+		#count += 1
+		#print('Error {0}'.format(count))
+	return mdfresults, dsrresults, pgfresults, bridgelist, psfresults
 
-'''
-*** PROBABILITY OF STRUCTURE FAILURE ***
-'''
-	
-def prob_structure_failure():
+mdfresults, dsrresults, pgfresults, bridgelist, psfresults = mdfactor(df1, df2, SF, CF, IF, XF, LF)	
+
+def risk_score(pof, cof):
 	results = []
-	
+	for a, b in zip(pof, cof):
+		try:
+			result = a*b
+		except:
+			pass
+		results.append(result)
 	return results
-
-#PSF = prob_structure_failure
 	
-'''
-*** OUTPUT THE DATA ***
-'''
-'''
-def output_bridge_calculations(bridge_index, *args):
-	datetime = dt.datetime.today().strftime('%Y-%m-%d')
-	filename = str(datetime) + "bridge"
-	dataframe = {}
-	index= ['RV','MDF']
+risk = risk_score(psfresults, CS)
+	
+def output_group_calculations(pgf_list, bridge_index):
+	df = pd.Series(pgf_list, index=bridge_index)
+	timestamp = get_timestamp()
+	output = df.to_csv(os.path.join(path, timestamp + 'group.csv'))
+	return output
+	
+output_group_calculations(pgfresults, bridgelist)
+
+def output_bridge_calculations(dataframe, bridge_index, *args):
+	dataframe['replacementValue'] = dataframe.apply (lambda row: add_replacement_cost (row), axis=1)
+	dataframe['nextInspection'] = dataframe.apply (lambda row: next_inspection_date (row, inspection_frequency), axis=1)
+	index= ['MDF', 'DSR', 'PSF', 'COF', 'Risk']
+	dataframe2 = {}
 	i = 0
 	for arg in args:
 		#print(arg)
-		dataframe[index[i]] = pd.Series(arg, index=bridge_index)
+		dataframe2[index[i]] = pd.Series(arg, index=dataframe.index)
 		i += 1
-	df = pd.DataFrame(dataframe)
-	output = df.to_csv(filename)
-	return output, filename
-'''
+	df = pd.DataFrame(dataframe2)
+	return df
 	
 # Save the calculated data to an output CSV
 def output_component_calculations(component_index, *args):
@@ -548,51 +556,31 @@ def output_component_calculations(component_index, *args):
 		dataframe[index[i]] = pd.Series(arg, index=component_index)
 		i += 1
 	df = pd.DataFrame(dataframe)
-	#output = df.to_csv(os.path.join(path, filename + '.csv'))
-	#return output, filename
 	return df
 
-'''
-def output_bridge_inspection_list(list, detailedList):
-	datetime = dt.datetime.today().strftime('%Y-%m-%d')
-	filename = str(datetime) + "inspections"
-	dataframe['Inspections'] = pd.Series(detailedList, index=list)
-	df = pd.DataFrame(dataframe)
-	output = df.to_csv(os.path.join(path, filename + '.csv'))
-	return output, filename
-'''	
-def update_bridge_data(dataframe, bridge_index, *args):
-	dataframe['replacementValue'] = dataframe.apply (lambda row: add_replacement_cost (row), axis=1)
-	dataframe['nextInspection'] = dataframe.apply (lambda row: next_inspection_date (row, inspection_frequency), axis=1)
-	index= ['MDF']
-	i = 0
-	for arg in args:
-		#print(arg)
-		dataframe[index[i]] = pd.Series(arg, index=bridge_index)
-		i += 1
-	new_df = pd.DataFrame(dataframe)
-	updated_df = pd.concat([dataframe, new_df], axis=1)
-	output = updated_df.to_csv(os.path.join(path, 'bridge-level-edited' + '.csv'))
-	return output	
-	
-update_bridge_data(df1, bridge_index, MDF)
+def update_bridge_data(dataframe1, dataframe2):
+	new_df = pd.concat([dataframe1, dataframe2], axis=1)
+	timestamp = get_timestamp()
+	output = new_df.to_csv(os.path.join(path, timestamp + 'bridge' + '.csv'))
+	return output
+
 
 def update_condition_data(dataframe1, dataframe2):
 	new_df = pd.concat([dataframe1, dataframe2], axis=1)
-	output = new_df.to_csv(os.path.join(path, 'condition-edited' + '.csv'))
+	timestamp = get_timestamp()
+	output = new_df.to_csv(os.path.join(path, timestamp + 'components' + '.csv'))
 	return output
 	
-#output_filename = output_bridge_calculations(bridge_index, MDF)
 df3 = output_component_calculations(component_index, LF, SF, CF, IF, XF, PCF)
+df4 = output_bridge_calculations(df1, bridge_index, mdfresults, dsrresults, psfresults, CS, risk)
 #output_bridge_inspection_list(dueForInspectionList, detailedDueForInspectionList)
 update_condition_data(df2, df3)
+update_bridge_data(df1, df4)
 
 def on_script_end():
 	print("\n")
 	print("... Analysis complete.")
 	print('... It took {0:0.1f} seconds to run the analysis.'.format(time.time() - start))
-	#print("... The bridge ouptut data file is named %s" %  bridge_output_filename)
-	#print("... The component ouptut data file is named {0}".format(component_output_filename))
 	print("\n")
 
 on_script_end()	
